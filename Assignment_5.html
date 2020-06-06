@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Assignment 5</title>
+
+    <!--Reset Css Browser-->
+    <link href="Reset.css" rel="stylesheet" />
+   
+    <!--Add Bootstrap-->
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <!--Add Angular-->
+    <script src="Scripts/angular.js"></script>
+
+    <!--Add Font Icon-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!--Style for Assignment5-->
+    <link href="Style.css" rel="stylesheet" />
+
+    <script>
+        var app = angular.module('Assignment', []);
+
+        app.controller("HotelController", function ($scope, $http) {
+            var url = "data.json";
+
+            FechData1();
+
+            function FechData1() {
+                $http.get(url)
+                    .then(function (response) {
+                        $scope.Hotels = response.data[1].entries;
+                        var prices = [];
+                        for (var i in $scope.Hotels) {
+                            prices.push($scope.Hotels[i].price);
+                        }
+                        $scope.max = Math.max(...prices);
+                        $scope.rangemax = $scope.max;
+                    }, function myError(response) {
+                        console.log(response);
+                    });
+            }
+
+            $scope.filterPrice = function (obj) {
+                return obj.price > 0 && obj.price <= $scope.max;
+            };
+
+            FetchData2();
+
+            function FetchData2() {
+                $http.get(url)
+                    .then(function (response) {
+                        $scope.Filters = response.data[1].entries[0].filters;
+                    }, function myError(response) {
+                        console.log(response);
+                    });
+            }
+
+            FetchData3();
+
+            function FetchData3() {
+                $http.get(url)
+                    .then(function (response) {
+                        $scope.Roomtypes = response.data[0].roomtypes;
+                    }, function myError(response) {
+                            console.log(response);
+                    });
+            }
+        });
+
+    </script>
+
+</head>
+
+<body ng-app="Assignment" ng-controller="HotelController">
+
+    <!-- Filters for data.Json -->
+    <section>
+        <div class="container area-filter">
+            <form>
+                <!--Search Bar and Button-->
+                <div class="form-inline pt-2 mb-2">
+
+                    <i class="fa fa-search"></i>
+                    <input type="text" class="form-control col-10 "  id="seachArea" ng-model="search.hotelName" ng-change="searchFor(Hotels.name)" placeholder="Champs Elisees, Paris" />
+                    <button type="submit" class="btn btn-primary col-2 font-weight-bolder">Search</button>
+
+                </div>
+                <!--Check in and out, Choose a Room-->
+                <div class="row">
+                    <div class="col-4">
+                        <div class="checkIn">
+                            <i class="fa fa-calendar-check-o form-control-feedback-check" aria-hidden="true"></i>
+                            <input type="date" class="form-control" value="2020-03-16" />
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="checkOut">
+                            <i class="fa fa-calendar-check-o form-control-feedback-check" aria-hidden="true"></i>
+                            <input type="date" class="form-control" placeholder="Check-in" value="2020-04-20" />
+                        </div>
+                    </div>
+
+                    <div class="col-4 form-group">
+                        <i class="fa fa-users form-control-feedback-family" aria-hidden="true"></i>
+                        <select class="form-control">
+                            <option ng-repeat="items in Roomtypes">{{items.name}}</option>
+                        </select>
+                    </div>
+                </div>
+                <!--Range and More Filters-->
+                <div class="row collor-same">
+                    <div class="form-group col-4 column">
+                        <label for="formControlRange" name="Price">Price:</label>
+                        <label for="formControlRange" name="value" id="max-price">{{max | currency}}</label>
+                        <input type="range" ng-model="max" min="0" max="1500" class="form-control-range" id="slider" />
+                    </div>
+
+                    <div class="form-group col-2 column">
+                        <label name="property-type">Property type</label>
+                        <select class="form-control" id="property-type" ng-model="search.rating">
+                            <option value="{{undefined}}">All</option>
+                            <option ng-value="1">1</option>
+                            <option ng-value="2">2</option>
+                            <option ng-value="3">3</option>
+                            <option ng-value="4">4</option>
+                            <option ng-value="5">5</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-2 column">
+                        <label name="guest-rating">Guest rating</label>
+                        <select class="form-control filter-style" id="guest-rating" ng-model="search.ratings.no">
+                            <option value={{undefined}} selected>All</option>
+                            <option ng-value="2">0-3</option>
+                            <option ng-value="3">6-7</option>
+                            <option ng-value="4">7-8.5</option>
+                            <option value={{undefined}}>8.5-10</option>
+                        </select>
+                    </div>
+
+                    <div class="col-2 form-group">
+                        <label name="hotel-location">Hotel location</label>
+                        <select class="form-control" id="hotel-location" ng-model="search.city">
+                            <option value={{undefined}} selected>All</option>
+                            <option ng-repeat="cities in Hotels | unique: 'city'">{{cities.city}}</option>
+                            <option>Paris</option>
+                            <option>Toulouz</option>
+                            <option>Marseille</option>
+                        </select>
+                    </div>
+
+                    <div class="col-2">
+                        <label name="more-filters">More filters</label>
+                        <select class="form-control filter-style" id="more-filters">
+                            <option selected>Select</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                        </select>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+    </section>
+
+    <!-- Loop for data.Json -->
+    <section>
+        <div class="container area-loop">
+            <div class="row mb-2 pt-2">
+                <div class="col-4 rounded-left">
+                    <iframe width="400" height="100"
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d83998.94722687619!2d2.277019841665155!3d48.8588377391234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sgr!4v1554987763683!5m2!1sen!2sgr">
+                    </iframe>
+                </div>
+                <div class="form-inline ml-auto col-5">
+                    <label class="col-3 font-weight-bolder" for="sort-by" id="sort-by-label">
+                        <strong>Sort by</strong>
+                    </label>
+                    <select class="form-control col-8" id="sort-by">
+                        <option ng-repeat="items in Filters">{{items.name}}</option>
+                    </select>
+                    <label class="col-1" for="sort-by" id="sort-info">
+                        <span class="fa fas fa-info-circle form-control-feedback"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row shadow bg-white m-1" ng-repeat="hotel in Hotels | filter:filterPrice | filter:search:strict">
+                <div class="col-3 img-dimension">
+                    <button class="heart"><i class="fa fa-heart" aria-hidden="true"></i></button>
+                    <img class="img-hotel" src={{hotel.thumbnail}} alt="Hotel Image" />
+                    <!--class="img-thumbnail"-->
+                </div>
+                <div class="col-3">
+                    <h3>{{hotel.hotelName}}</h3>
+                    <i class="fa fa-star" ng-repeat="stars in [].constructor(hotel.rating) track by $index"></i>{{hotel.rating}} Hotel
+                    <p>"{{hotel.city}}, 0,2 miles to Champs Elysees, "</p>
+                    <p style="font-size:0.907rem"><span class="rating-number">{{hotel.ratings.no}}</span><strong class="rating-text">{{hotel.ratings.text}}</strong> (1736 reviews)</p>
+                    <p style="font-size:1rem"> {{hotel.ratings.text}} location (9.2 / 10)</p>
+                </div>
+                <div class="col-2 hotel">
+                    <p class="hotel1">Hotel website <br> <strong>{{hotel.price}}</strong></p>
+                    <p class="hotel2">Agora <br> <strong>{{hotel.price +15}}</strong></p>
+                    <p class="hotel2">Travelocity <br> <strong>{{hotel.price +20}}</strong></p>
+                    <p class="hotel3"><strong>More deals from <br>{{hotel.price -118}}</strong><i class="fa fas fa-angle-down"></i></p>
+                </div>
+                <div class="col-3">
+                    <p class="hotel4" style="font-size:larger">Hotel website <br> <strong>{{hotel.price | currency}}</strong> <br> 3 nights for {{hotel.price *3 | currency}}</p>
+                    <button type="button" class="btn btn-outline-success btn-block" id="free-breakfast">Free breakfast</button>
+                    <button class="btn btn-success view-btn">View Deal<span><i class="fa fa-angle-right " aria-hidden="true"></i></span></button>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
